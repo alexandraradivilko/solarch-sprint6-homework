@@ -1,0 +1,51 @@
+flowchart LR
+    subgraph FU["FinUnion: действующие системы"]
+        direction TB
+        FC["CRM FinUnion<br/>Create / Update / Read"]
+        FB["Core Banking FinUnion<br/>Create / Update / Read"]
+        FP["Card Processing FinUnion<br/>Create / Update / Read"]
+        FL["Loan System FinUnion<br/>Create / Update / Read"]
+    end
+    subgraph RB["RetailBank: действующие системы"]
+        direction TB
+        RC["CRM RetailBank<br/>Create / Update / Read"]
+        RBK["Core Banking RetailBank<br/>Create / Update / Read"]
+        RP["Card Processing RetailBank<br/>Create / Update / Read"]
+        RL["Loan System RetailBank<br/>Create / Update / Read"]
+    end
+
+    IL("Integration Layer<br/>FU ESB + адаптеры RB<br/>Validate / Enrich")
+    MDM[("MDM Customer Hub<br/>Validate / Enrich<br/>Create / Update")]
+    DWH[("DWH: общий слой FU DWH<br/>Create / Update / Delete<br/>Validate / Enrich / Aggregate")]
+    BI["BI: общие витрины<br/>Read"]
+    DH[("DataHub: каталог<br/>Create / Update<br/>Только метаданные")]
+    REG["Внешний потребитель<br/>регуляторной отчётности"]
+
+    FC -->|"F01: клиенты и обслуживание"| IL
+    RC -->|"F01: клиенты и обслуживание"| IL
+    FB -->|"F02: учёт и каталоги"| IL
+    RBK -->|"F02: учёт и каталоги"| IL
+    FP -->|"F03: карты и каталоги"| IL
+    RP -->|"F03: карты и каталоги"| IL
+    FL -->|"F04: кредиты и каталоги"| IL
+    RL -->|"F04: кредиты и каталоги"| IL
+    IL -->|"F05: клиенты, ID, ограничения, каталоги"| MDM
+    MDM -->|"F06: эталоны, версии, соответствия"| IL
+    IL -->|"F07: профиль; Update / Delete"| FC
+    IL -->|"F07: профиль; Update / Delete"| RC
+    IL -->|"F08: данные и общие ключи"| DWH
+    DWH -->|"F09: витрины; Read"| BI
+    DWH -->|"F10: отчёт; Read / Aggregate"| REG
+    IL -.->|"F11: схемы, lineage, DQ"| DH
+    MDM -.->|"F11: эталоны, правила"| DH
+    DWH -.->|"F11: модели, lineage, DQ"| DH
+    BI -.->|"F11: метрики, lineage"| DH
+
+    classDef source fill:#f4f5f6,stroke:#687178,color:#20272b
+    classDef integration fill:#e2f3ee,stroke:#247564,color:#17382f
+    classDef analytics fill:#e8f0f8,stroke:#3a668c,color:#213b52
+    classDef metadata fill:#fbf2d9,stroke:#9a7a32,color:#524018
+    class FC,FB,FP,FL,RC,RBK,RP,RL source
+    class IL,MDM integration
+    class DWH,BI,REG analytics
+    class DH metadata

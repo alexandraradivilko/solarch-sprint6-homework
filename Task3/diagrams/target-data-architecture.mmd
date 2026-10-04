@@ -1,0 +1,47 @@
+flowchart TB
+    OPS["Operational Systems<br/>FU Core / CRM / Cards / Loans<br/>RB: до приёмки миграции"]
+    IL("Integration Layer<br/>API / CDC / адаптеры")
+    K["Kafka<br/>События / эталоны"]
+    MDM[("MDM Customer Hub<br/>Клиенты / справочники")]
+    LOAD("Batch-загрузка<br/>SQL / сверки / публикация")
+    SP("Spark<br/>Batch / Structured Streaming")
+    ARCH["Архивы RB<br/>Landing в объектном хранилище"]
+    LH[("Data Lakehouse<br/>Iceberg / Parquet<br/>S3-совместимое хранилище")]
+    CAT["Iceberg REST Catalog<br/>Технические метаданные таблиц"]
+    TR("Trino<br/>SQL по Lakehouse")
+    DWH[("PostgreSQL DWH<br/>Staging / ядро / витрины")]
+    BI["BI<br/>Отчёты / исследования"]
+    REG["Регуляторная отчётность"]
+    AF["Airflow<br/>Оркестрация batch"]
+    DH["DataHub<br/>Каталог / lineage / владельцы"]
+
+    OPS <-->|"Синхронные API; изменения источников"| IL
+    IL <-->|"Async: события / проекции"| K
+    K <-->|"P2: входные данные / эталоны"| MDM
+    IL -->|"P1: инкременты, срезы, MDM"| LOAD
+    K -->|"P3: события"| SP
+    ARCH -->|"P4: исторические партии"| SP
+    SP -->|"Подготовленные таблицы"| LH
+    LH -->|"Чтение данных"| TR
+    CAT -.->|"Метаданные"| SP
+    CAT -.->|"Метаданные"| TR
+    TR -->|"P4: принятая история"| LOAD
+    LOAD -->|"P1/P4: сверенные данные"| DWH
+    DWH -->|"Сертифицированные витрины"| BI
+    TR -->|"Исследовательские наборы"| BI
+    DWH -->|"Утверждённый срез"| REG
+    AF -.->|"Расписание / повторы"| LOAD
+    AF -.->|"Архивы / обслуживание Iceberg"| SP
+    MDM -.->|"Эталоны / владельцы"| DH
+    LOAD -.->|"Lineage / DQ / модели DWH"| DH
+    SP -.->|"Lineage / DQ Lakehouse"| DH
+    BI -.->|"Метрики / lineage"| DH
+
+    classDef operational fill:#f4f5f6,stroke:#687178,color:#20272b
+    classDef exchange fill:#e2f3ee,stroke:#247564,color:#17382f
+    classDef analytics fill:#e8f0f8,stroke:#3a668c,color:#213b52
+    classDef governance fill:#fbf2d9,stroke:#9a7a32,color:#524018
+    class OPS,ARCH operational
+    class IL,K,MDM exchange
+    class LOAD,SP,LH,TR,DWH,BI,REG analytics
+    class CAT,AF,DH governance
