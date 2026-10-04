@@ -1,0 +1,68 @@
+erDiagram
+    DIM_CUSTOMER {
+        bigint customer_sk PK
+        string global_customer_id
+        string party_type
+        string segment
+        datetime valid_from
+        datetime valid_to
+    }
+    DIM_ACCOUNT {
+        bigint account_sk PK
+        string account_id
+        string account_type
+    }
+    DIM_PRODUCT {
+        bigint product_sk PK
+        string product_id
+        string product_version_id
+        string family
+        string business_line
+        datetime valid_from
+        datetime valid_to
+    }
+    DIM_DATE {
+        int date_sk PK
+        date execution_date
+        int month
+        int quarter
+        int year
+    }
+    DIM_CURRENCY {
+        int currency_sk PK
+        string currency_code
+        string name
+    }
+    DIM_CHANNEL {
+        int channel_sk PK
+        string channel_code
+        string name
+    }
+    DIM_BANK {
+        int bank_sk PK
+        string bank_id
+        string name
+    }
+    FACT_PAYMENTS {
+        bigint payment_sk PK
+        bigint customer_sk FK
+        bigint account_sk FK
+        bigint product_sk FK
+        int date_sk FK
+        int currency_sk FK
+        int channel_sk FK
+        int bank_sk FK
+        string origin_system
+        string origin_payment_id
+        string original_payment_id
+        decimal payment_amount
+        int payment_count
+    }
+
+    DIM_CUSTOMER ||--o{ FACT_PAYMENTS : payer
+    DIM_ACCOUNT ||--o{ FACT_PAYMENTS : debtor_account
+    DIM_PRODUCT ||--o{ FACT_PAYMENTS : account_product
+    DIM_DATE ||--o{ FACT_PAYMENTS : executed_on
+    DIM_CURRENCY ||--o{ FACT_PAYMENTS : denominated_in
+    DIM_CHANNEL ||--o{ FACT_PAYMENTS : initiated_via
+    DIM_BANK ||--o{ FACT_PAYMENTS : booked_by
